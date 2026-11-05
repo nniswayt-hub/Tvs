@@ -1,0 +1,122 @@
+VOTA PRO — INSTALACIÓN Y CONFIGURACIÓN
+=====================================
+
+CONTENIDO
+---------
+index.html     Página pública de resultados.
+admin.html     Panel de administración con inicio de sesión.
+styles.css     Diseño responsive y componentes visuales.
+app.js         Lectura pública, gráfico, ranking y sincronización.
+admin.js       Autenticación, administración CRUD y sincronización.
+config.js      URL y Publishable key de Supabase.
+schema.sql     Tablas, índices, RLS, permisos y Realtime.
+LEEME.txt      Esta guía.
+
+1. CONFIGURAR SUPABASE
+----------------------
+Proyecto configurado:
+https://uzbdthpyleludxernwqg.supabase.co
+
+La Publishable key ya está cargada en config.js. Es una clave pública para el
+cliente y no reemplaza las políticas de seguridad.
+
+a) Abrí Supabase Dashboard > SQL Editor.
+b) Abrí schema.sql, copiá todo su contenido y ejecutalo.
+c) Comprobá que aparezcan las tablas public.options y public.participants.
+d) En Authentication > Providers, verificá que Email esté habilitado.
+e) En Authentication > URL Configuration, agregá el dominio donde vas a alojar
+   VOTA PRO a Site URL y Redirect URLs.
+
+2. CREAR EL USUARIO ADMINISTRADOR
+----------------------------------
+No existe una contraseña predeterminada dentro del proyecto.
+
+a) Entrá a Supabase Dashboard > Authentication > Users.
+b) Elegí Add user y creá el usuario con tu correo y una contraseña segura.
+c) Copiá el UUID de ese usuario.
+d) En SQL Editor ejecutá esta consulta sustituyendo el UUID:
+
+update auth.users
+set raw_app_meta_data =
+  coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role":"admin"}'::jsonb
+where id = 'UUID-DEL-USUARIO';
+
+e) Cerrá cualquier sesión anterior y volvé a iniciar sesión en admin.html.
+
+El panel utiliza Supabase Auth signInWithPassword. Además, el rol admin se
+verifica en el JWT y las policies RLS vuelven a comprobarlo en el servidor.
+No se guarda ninguna contraseña en JavaScript ni en localStorage por código
+propio de esta aplicación. Supabase mantiene la sesión segura del cliente.
+
+IMPORTANTE: nunca agregues la service_role key a config.js, HTML o JavaScript.
+La Publishable key sí está pensada para estar en el navegador.
+
+3. PUBLICAR EL SITIO
+--------------------
+Subí los ocho archivos a la raíz de tu hosting (Netlify, Vercel o hosting estático).
+La estructura debe quedar así:
+
+/index.html
+/admin.html
+/styles.css
+/app.js
+/admin.js
+/config.js
+/schema.sql
+/LEEME.txt
+
+Abrí la URL del sitio para ver la página pública. Para gestionar datos, abrí
+/admin.html e iniciá sesión con el usuario que recibió el rol admin.
+
+Para probarlo desde tu PC, no abras los HTML con file://. Usá un servidor local,
+por ejemplo la extensión Live Server de VS Code o:
+  python -m http.server 8000
+y visitá http://localhost:8000
+
+4. FUNCIONAMIENTO
+-----------------
+- La página pública consulta opciones y participantes reales de Supabase.
+- Los votos se calculan como la cantidad de participantes asignados a cada opción.
+- El gráfico circular y el ranking se calculan a partir de esos registros.
+- El buscador público filtra participantes por nombre u opción.
+- El panel permite crear, editar y eliminar opciones y participantes.
+- No se puede borrar una opción que todavía tenga participantes asignados.
+- Supabase Realtime notifica cambios para refrescar ambas interfaces.
+- El público tiene permisos de lectura únicamente.
+- Solo usuarios con app_metadata.role = "admin" pueden modificar registros.
+
+5. PRIVACIDAD Y MODELO DE VOTACIÓN
+----------------------------------
+La página pública muestra el nombre de cada participante y su opción asignada,
+porque esa funcionalidad fue solicitada expresamente. Por lo tanto, los datos
+de participantes no son privados. No cargues información sensible.
+
+Este modelo considera un participante = un voto/registro. No implementa
+autenticación individual de votantes, prevención de duplicados por identidad,
+votación anónima ni un sistema de boletas secretas. Si necesitás esas reglas,
+el esquema y el flujo de votación deben ampliarse antes de usarlo en una elección
+formal.
+
+6. SI ALGO NO FUNCIONA
+----------------------
+- Error de permisos/RLS: comprobá que ejecutaste schema.sql y que el usuario
+  tiene app_metadata.role = "admin".
+- El panel rechaza al administrador: cerrá sesión, volvé a entrar para renovar
+  el JWT y verificá el rol en Authentication > Users.
+- No aparecen datos: revisá que las tablas existan y que el proyecto de
+  config.js sea el correcto.
+- No se actualiza en vivo: verificá que ambas tablas estén en la publicación
+  supabase_realtime.
+- Error de login: verificá Email provider y las credenciales creadas en Supabase.
+- Si se usa un dominio propio, agregalo a Authentication > URL Configuration.
+
+El proyecto requiere conexión a Internet para Supabase, Chart.js y las fuentes.
+
+
+ACTUALIZACIÓN: DOS ELECCIONES INDEPENDIENTES
+---------------------------------------------
+La página pública ahora muestra dos paneles de resultados, uno para cada elección, con gráficos circulares del mismo tamaño y rankings separados.
+
+En Administración > Opciones de votación, elegí Elección 1 o Elección 2 antes de crear una opción. Las opciones se agrupan por elección y cada voto se cuenta únicamente en el círculo correspondiente. Al registrar un participante, primero seleccioná la elección y después una de sus opciones.
+
+IMPORTANTE: antes de publicar esta versión, abrí Supabase > SQL Editor y ejecutá el archivo schema.sql actualizado. La columna election_id se agrega con valor 1 a las opciones existentes, por lo que las opciones y votos actuales quedan en Elección 1. Luego podrás crear las opciones de Elección 2 desde el administrador. No hace falta borrar las tablas.
