@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#080b16">
+  <meta name="description" content="VOTA PRO — Resultados de votaciones en tiempo real.">
+  <title>VOTA PRO — Resultados en vivo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <header class="topbar">
+    <a class="brand" href="./index.html" aria-label="Vota Pro inicio">
+      <span class="brand-mark"><span></span><span></span><span></span></span>
+      <span>VOTA<span class="brand-accent">PRO</span><small>RESULTADOS EN VIVO</small></span>
+    </a>
+    <nav class="top-actions">
+      <span class="live-pill"><i></i> SISTEMA EN VIVO</span>
+      <a class="button button-quiet" href="./admin.html"><span class="icon">⌘</span> Administración</a>
+    </nav>
+  </header>
+
+  <main class="public-main">
+    <section class="hero">
+      <div class="eyebrow"><span class="eyebrow-line"></span> PLATAFORMA DE VOTACIONES</div>
+      <h1>Los resultados,<br><span>en tiempo real.</span></h1>
+      <p>Transparencia en cada voto. Consultá las opciones, seguí la clasificación y encontrá participantes.</p>
+      <div class="hero-meta"><span class="meta-dot"></span> Datos sincronizados con Supabase <span class="meta-separator">/</span> Actualización automática</div>
+    </section>
+
+    <section class="stats-grid" aria-label="Estadísticas generales">
+      <article class="stat-card">
+        <div class="stat-top"><span class="stat-label">VOTOS REGISTRADOS</span><span class="stat-icon violet">↗</span></div>
+        <div class="stat-value" id="totalVotes">—</div><div class="stat-foot">Participaciones registradas</div>
+      </article>
+      <article class="stat-card">
+        <div class="stat-top"><span class="stat-label">OPCIONES</span><span class="stat-icon cyan">◈</span></div>
+        <div class="stat-value" id="totalOptions">—</div><div class="stat-foot">Opciones disponibles</div>
+      </article>
+      <article class="stat-card">
+        <div class="stat-top"><span class="stat-label">PARTICIPANTES</span><span class="stat-icon blue">◎</span></div>
+        <div class="stat-value" id="totalParticipants">—</div><div class="stat-foot">Personas registradas</div>
+      </article>
+    </section>
+
+    <section class="content-grid election-block" style="margin-bottom:24px">
+      <article class="panel chart-panel">
+        <div class="section-heading"><div><div class="eyebrow small-eyebrow">CUALITATIVA</div><h2>Resultados de la elección cualitativa</h2></div><span class="subtle-tag">EN VIVO <i></i></span></div>
+        <div class="chart-wrap"><canvas id="votesChart1" aria-label="Gráfico circular de elección cualitativa"></canvas><div class="chart-center"><strong id="chartTotal1">0</strong><span>VOTOS TOTALES</span></div></div>
+        <div class="chart-legend" id="chartLegend1"><div class="empty-inline">Esperando datos…</div></div>
+      </article>
+      <article class="panel ranking-panel"><div class="section-heading"><div><div class="eyebrow small-eyebrow">POSICIONES</div><h2>Clasificación · Cualitativa</h2></div><span class="subtle-tag"><span id="electionVotes1">0</span> VOTOS</span></div>
+        <div id="rankingList1" class="ranking-list"><div class="skeleton-line"></div></div></article>
+    </section>
+    <section class="content-grid election-block" style="margin-bottom:24px">
+      <article class="panel chart-panel">
+        <div class="section-heading"><div><div class="eyebrow small-eyebrow">CUANTITATIVA</div><h2>Histograma de la elección cuantitativa</h2></div><span class="subtle-tag">EN VIVO <i></i></span></div>
+        <div class="chart-wrap"><canvas id="votesChart2" aria-label="Histograma de frecuencias de la elección cuantitativa"></canvas><div class="chart-center"><strong id="chartTotal2">0</strong><span>VOTOS TOTALES</span></div></div>
+        <div class="chart-legend" id="chartLegend2"><div class="empty-inline">Esperando datos…</div></div>
+      </article>
+      <article class="panel ranking-panel"><div class="section-heading"><div><div class="eyebrow small-eyebrow">POSICIONES</div><h2>Clasificación · Cuantitativa</h2></div><span class="subtle-tag"><span id="electionVotes2">0</span> VOTOS</span></div>
+        <div id="rankingList2" class="ranking-list"><div class="skeleton-line"></div></div></article>
+    </section>
+    <section class="panel participants-panel">
+      <div class="section-heading participants-heading">
+        <div><div class="eyebrow small-eyebrow">REGISTRO PÚBLICO</div><h2>Participantes</h2><p class="section-description">Consultá quién participa y qué opción tiene asignada.</p></div>
+        <div class="participant-tools">
+          <label class="search-box"><span>⌕</span><input id="participantSearch" type="search" placeholder="Buscar participante…" autocomplete="off"></label>
+          <span class="count-tag" id="participantCount">0 registros</span>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>PARTICIPANTE</th><th>OPCIÓN ASIGNADA</th><th>REGISTRO</th></tr></thead>
+          <tbody id="participantsBody"><tr><td colspan="3" class="table-message">Conectando con la base de datos…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="table-footer"><span id="lastUpdated">Esperando sincronización</span><span class="sync-indicator"><i></i> SINCRONIZACIÓN ACTIVA</span></div>
+    </section>
+    <div id="pageMessage" class="page-message" role="status"></div>
+  </main>
+  <footer class="footer"><span class="footer-brand">VOTA<span>PRO</span></span><span>Plataforma de resultados y participación</span><a href="./admin.html">Acceso administrativo ↗</a></footer>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
